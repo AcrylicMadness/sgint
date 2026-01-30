@@ -1,5 +1,5 @@
 //
-//  GDFile.swift
+//  TSCN.swift
 //  sgint
 //
 //  Created by Acrylic M. on 30.01.2026.
@@ -8,11 +8,16 @@
 import Collections
 import Foundation
 
-typealias TSCN = OrderedDictionary<TSCNKey, OrderedDictionary<String, Codable>>
+/// Set of key-value pairs that can be used in TSCN headings or sections
+typealias TSCNValue = OrderedDictionary<String, any Codable & Hashable>
 
-struct TSCNKey: Hashable, ExpressibleByStringLiteral {
+/// Container for TSCN type
+typealias TSCN = OrderedDictionary<TSCNHeading, TSCNValue>
+
+/// TSCN Header
+struct TSCNHeading: Hashable, ExpressibleByStringLiteral {
     let name: String
-    let properties: OrderedDictionary<String, any Codable & Hashable>
+    let properties: TSCNValue
     
     init(stringLiteral value: StringLiteralType) {
         self.init(name: value)
@@ -20,15 +25,15 @@ struct TSCNKey: Hashable, ExpressibleByStringLiteral {
 
     init(
         name: String,
-        properties: OrderedDictionary<String, any Codable & Hashable> = [:]
+        properties: TSCNValue = [:]
     ) {
         self.name = name
         self.properties = properties
     }
 
     static func == (
-        lhs: TSCNKey,
-        rhs: TSCNKey
+        lhs: TSCNHeading,
+        rhs: TSCNHeading
     ) -> Bool {
         guard lhs.name == rhs.name else { return false }
         guard lhs.properties.count == rhs.properties.count else { return false }

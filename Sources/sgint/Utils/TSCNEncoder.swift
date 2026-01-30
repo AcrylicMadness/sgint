@@ -1,12 +1,24 @@
+//
+//  TSCNEncoder.swift
+//  sgint
+//
+//  Created by Acrylic M. on 30.01.2026.
+//
+
 import Foundation
 
+/// Encodes TSCN container into String
 final class TSCNEncoder {
+    
+    /// String encoding to use
     var stringEncoding: String.Encoding
+    
+    /// Determines if an empty line should be added after each section for readability
     var separateSections: Bool
     
     init(
         stringEncoding: String.Encoding = .utf8,
-        separateSections: Bool = false
+        separateSections: Bool = true
     ) {
         self.stringEncoding = stringEncoding
         self.separateSections = separateSections

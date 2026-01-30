@@ -12,6 +12,13 @@ struct SwiftGodotIntegrate: AsyncParsableCommand {
     private lazy var templateLoader: ResourceLoader = .templateLoader
 
     mutating func run() async throws {
-        print("Hello, World!")
+        print(
+            try TSCNEncoder().encode(
+                tscn: try GDExtension(
+                    name: "ExampleGameDriver",
+                    platforms: [Platform_iOS(), Platform_macOS()]
+                ).tscnRepresentation
+            )
+        )
     }
 }

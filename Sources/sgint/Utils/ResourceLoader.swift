@@ -1,3 +1,10 @@
+//
+//  ResourceLoader.swift
+//  sgint
+//
+//  Created by Acrylic M. on 30.01.2026.
+//
+
 import Foundation
 
 struct ResourceLoader: Decodable {
@@ -38,5 +45,8 @@ struct ResourceLoader: Decodable {
 }
 
 extension ResourceLoader {
-    static let templateLoader = ResourceLoader(path: "Templates", defaultExtension: "sgtmp")
+    static let templateLoader = ResourceLoader(
+        path: "Templates",
+        defaultExtension: "sgtmp"
+    )
 }
