@@ -31,6 +31,7 @@ struct Platform_macOS: Platform {
             throw Builder.BuildError.failedToMapBinariesPaths
         }
         
+        // TODO: Move copying logic into builder
         for library in libraries {
             print("Copying \(library)")
             

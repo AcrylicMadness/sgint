@@ -7,4 +7,6 @@
 
 import Foundation
 
+#if os(macOS)
 extension FileManager: @unchecked @retroactive Sendable { }
+#endif

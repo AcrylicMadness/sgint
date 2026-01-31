@@ -10,5 +10,5 @@ import Foundation
 
 enum Architecture: String, CaseIterable, Codable, ExpressibleByArgument {
     case x86_64
-    case arm64
+    case aarch64
 }
