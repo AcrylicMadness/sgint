@@ -129,7 +129,7 @@ struct SwiftGodotIntegrate: AsyncParsableCommand {
         for platform in platforms {
             for mode in configuration {
                 print("Building for target: \(platform.name)-\(mode)")
-                await builder.setMode(mode)
+                await builder.prepare(forMode: mode)
                 let binPath = try await platform.build(using: builder)
                 try await builder.copyBinaries(from: binPath, for: platform)
             }

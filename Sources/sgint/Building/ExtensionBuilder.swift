@@ -9,15 +9,26 @@ import Foundation
 
 actor ExtensionBuilder {
     actor Output {
-        private(set) var content: String = ""
+        private var content: String = ""
         
         func printLine(_ line: String) {
             print(line, terminator: line.hasSuffix("\n") ? "" : "\n")
             appendLine(line)
         }
         
+        @discardableResult
+        func drain() -> String {
+            let output = content
+            content = ""
+            return output
+        }
+        
         func appendLine(_ line: String) {
             content.appendLine(line)
+        }
+        
+        func clear() {
+            content = ""
         }
     }
     
@@ -54,7 +65,8 @@ actor ExtensionBuilder {
         self.binFolderName = binFolderName
     }
     
-    func setMode(_ buildMode: BuildMode) {
+    func prepare(forMode buildMode: BuildMode) async {
+        await output.drain()
         self.buildMode = buildMode
     }
     
@@ -62,6 +74,7 @@ actor ExtensionBuilder {
     func run(
         _ command: String,
     ) async throws -> String {
+        print("Running: \(command)")
         let outputPipe = Pipe()
         let task = self.createProcess([command], outputPipe)
         outputPipe.fileHandleForReading.readabilityHandler = { [weak self] fileHandle in
@@ -77,7 +90,7 @@ actor ExtensionBuilder {
         guard task.terminationStatus == 0 else {
             throw BuildError.buildFailed(terminationStatus: task.terminationStatus)
         }
-        return await output.content
+        return await output.drain()
     }
     
     func copyBinaries(
