@@ -28,6 +28,11 @@ actor ExtensionBuilder {
         }
     }
     
+    enum ShellType: String, CaseIterable {
+        case zsh
+        case sh
+    }
+    
     // MARK: - Properties
     let projectName: String
     let driverName: String
@@ -43,6 +48,7 @@ actor ExtensionBuilder {
     }
     
     private let output: Output = Output()
+    private let shellUrl: URL
     
     // MARK: - Public Methods
     init(
@@ -51,12 +57,26 @@ actor ExtensionBuilder {
         workingDirectory: URL,
         binFolderName: String,
         fileManager: FileManager
-    ) {
+    ) throws {
         self.projectName = projectName
         self.driverName = driverName
         self.workingDirectory = workingDirectory
         self.fileManager = fileManager
         self.binFolderName = binFolderName
+        
+        var detectedShellUrl: URL?
+        
+        for path in ShellType.allCases.map({ "/bin/\($0.rawValue)" }) {
+            if fileManager.fileExists(atPath: path) {
+                detectedShellUrl = URL(fileURLWithPath: path)
+                print("Using \(path)")
+                break
+            }
+        }
+        guard let detectedShellUrl else {
+            throw BuildError.unableToLocateShell
+        }
+        self.shellUrl = detectedShellUrl
     }
     
     func prepare(
@@ -74,7 +94,7 @@ actor ExtensionBuilder {
     ) async throws -> String {
         print("Running: \(command)")
         let outputPipe = Pipe()
-        let task = self.createProcess([command], outputPipe)
+        let task = try self.createProcess([command], outputPipe)
         outputPipe.fileHandleForReading.readabilityHandler = { [weak self] fileHandle in
             if let line = self?.getOutput(outputPipe, fileHandle) {
                 // Far from the best way to do it, but AsyncBytes is not available on Linux
@@ -144,9 +164,9 @@ actor ExtensionBuilder {
     func createProcess(
         _ arguments: [String],
         _ pipe: Pipe
-    ) -> Process {
+    ) throws -> Process {
         let task = Process()
-        task.executableURL = URL(fileURLWithPath: "/bin/zsh")
+        task.executableURL = shellUrl
         task.arguments = ["-c"] + arguments
         task.standardOutput = pipe
         task.standardError = pipe
@@ -171,6 +191,7 @@ actor ExtensionBuilder {
 
     enum BuildError: Error {
         case buildFailed(terminationStatus: Int32)
+        case unableToLocateShell
         case failedToMapBinariesPaths
     }
 }

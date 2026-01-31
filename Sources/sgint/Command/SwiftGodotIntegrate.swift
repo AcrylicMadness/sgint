@@ -116,7 +116,7 @@ struct SwiftGodotIntegrate: AsyncParsableCommand {
         driverName: String,
         projectName: String
     ) async throws {
-        let builder = ExtensionBuilder(
+        let builder = try ExtensionBuilder(
             projectName: projectName,
             driverName: driverName,
             workingDirectory: workingDirectory,
