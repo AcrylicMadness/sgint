@@ -27,7 +27,7 @@ enum Target: String, Decodable, CaseIterable, ExpressibleByArgument {
         get throws {
 #if os(macOS)
             .macos
-#elseif os(linux)
+#elseif os(Linux)
             .linux
 #else
             throw TargetDetectError.platfromUnsupportedBySgint
