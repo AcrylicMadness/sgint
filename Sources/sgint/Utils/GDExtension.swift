@@ -17,6 +17,9 @@ struct GDExtension {
     /// Platforms supported by the extension
     let platforms: [any Platform]
     
+    /// Architectures supported by the extension
+    let archs: [Architecture]
+    
     /// Configuration for the extension
     let configuration: Configuration
     
@@ -29,12 +32,14 @@ struct GDExtension {
     init(
         name: String,
         platforms: [any Platform],
+        archs: [Architecture],
         configuration: Configuration = .standard,
         binLocation: String = "res://bin",
         buildModes: [BuildMode] = BuildMode.allCases
     ) {
         self.name = name
         self.platforms = platforms
+        self.archs = archs
         self.configuration = configuration
         self.binLocation = binLocation
         self.buildModes = buildModes
@@ -44,18 +49,20 @@ struct GDExtension {
         var dependencies: TSCNValue = TSCNValue()
         var libraries: TSCNValue = TSCNValue()
         
-        for platform in platforms {
-            for mode in buildModes {
-                let target = "\(platform.name).\(mode.rawValue)"
-                let (driverLib, swiftGodotLib) = platform.getLibNames(for: name)
-                
-                let baseLocation = "\(binLocation)/\(name)/\(platform.name)/\(mode.rawValue)"
-                
-                let driverLocation = "\(baseLocation)/\(driverLib)"
-                let swiftGodotLocation = "\(baseLocation)/\(swiftGodotLib)"
-                
-                libraries[target] = driverLocation
-                dependencies[target] = [swiftGodotLocation: ""]
+        for mode in buildModes {
+            for platform in platforms {
+                for arch in archs {
+                    let target = "\(platform.name).\(mode.rawValue).\(arch.alias)"
+                    let (driverLib, swiftGodotLib) = platform.getLibNames(for: name)
+                    
+                    let baseLocation = "\(binLocation)/\(name)/\(platform.name)-\(arch.rawValue)/\(mode.rawValue)"
+                    
+                    let driverLocation = "\(baseLocation)/\(driverLib)"
+                    let swiftGodotLocation = "\(baseLocation)/\(swiftGodotLib)"
+                    
+                    libraries[target] = driverLocation
+                    dependencies[target] = [swiftGodotLocation: ""]
+                }
             }
         }
         return [

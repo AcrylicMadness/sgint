@@ -70,8 +70,14 @@ struct SwiftGodotIntegrate: AsyncParsableCommand {
             try validateTargets()
         }
         
+        if arch.isEmpty {
+            try arch.append(Architecture.current)
+        }
+        
         let currentProjectName = projectName ?? workingDirectory.lastPathComponent
         let currentDriverName = driverName ?? "\(currentProjectName.alphanumerics)Driver"
+        
+        printBuildConfig(projectName: currentProjectName)
         
         switch action {
         case .integrate:
@@ -115,7 +121,6 @@ struct SwiftGodotIntegrate: AsyncParsableCommand {
             driverName: driverName,
             workingDirectory: workingDirectory,
             binFolderName: binFolderName,
-            buildArchs: arch,
             fileManager: fileManager
         )
         try await buildPlatforms(withBuilder: builder)
@@ -128,10 +133,12 @@ struct SwiftGodotIntegrate: AsyncParsableCommand {
     ) async throws {
         for platform in platforms {
             for mode in configuration {
-                print("Building for target: \(platform.name)-\(mode)")
-                await builder.prepare(forMode: mode)
-                let binPath = try await platform.build(using: builder)
-                try await builder.copyBinaries(from: binPath, for: platform)
+                for architecture in arch {
+                    print("Building for: \(platform.name)-\(mode)-\(architecture.rawValue)")
+                    await builder.prepare(forMode: mode, with: architecture)
+                    let binPath = try await platform.build(using: builder)
+                    try await builder.copyExtensionBinaries(from: binPath, for: platform, with: architecture)
+                }
             }
         }
     }
@@ -144,6 +151,7 @@ struct SwiftGodotIntegrate: AsyncParsableCommand {
         let gdExtension = GDExtension(
             name: name,
             platforms: platforms,
+            archs: arch,
             buildModes: configuration
         )
         let content = try tscnEncoder.encode(tscn: gdExtension.tscnRepresentation)
@@ -151,5 +159,14 @@ struct SwiftGodotIntegrate: AsyncParsableCommand {
             .appendingPathComponent(binFolderName)
             .appendingPathComponent("\(name).gdextension")
         try content.write(to: outputUrl, atomically: true, encoding: .utf8)
+    }
+    
+    private
+    func printBuildConfig(projectName: String) {
+        print("Build Configuration:")
+        print("Project: \(projectName)")
+        print("Modes: \(configuration.map({ $0.rawValue }))")
+        print("Platforms: \(targets.map({ $0.rawValue }))")
+        print("Architectures: \(arch.map({ $0.rawValue }))")
     }
 }

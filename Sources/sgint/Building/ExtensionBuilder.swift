@@ -16,19 +16,15 @@ actor ExtensionBuilder {
             appendLine(line)
         }
         
+        func appendLine(_ line: String) {
+            content.appendLine(line)
+        }
+        
         @discardableResult
         func drain() -> String {
             let output = content
             content = ""
             return output
-        }
-        
-        func appendLine(_ line: String) {
-            content.appendLine(line)
-        }
-        
-        func clear() {
-            content = ""
         }
     }
     
@@ -40,7 +36,7 @@ actor ExtensionBuilder {
     let binFolderName: String
     
     var buildMode: BuildMode = .debug
-    var buildArchs: [Architecture]
+    var buildArch: Architecture = .aarch64
     
     var driverPath: URL {
         workingDirectory.appendingPathComponent("\(driverName)")
@@ -54,20 +50,22 @@ actor ExtensionBuilder {
         driverName: String,
         workingDirectory: URL,
         binFolderName: String,
-        buildArchs: [Architecture],
         fileManager: FileManager
     ) {
         self.projectName = projectName
         self.driverName = driverName
         self.workingDirectory = workingDirectory
-        self.buildArchs = buildArchs
         self.fileManager = fileManager
         self.binFolderName = binFolderName
     }
     
-    func prepare(forMode buildMode: BuildMode) async {
+    func prepare(
+        forMode buildMode: BuildMode,
+        with arch: Architecture
+    ) async {
         await output.drain()
         self.buildMode = buildMode
+        self.buildArch = arch
     }
     
     @discardableResult
@@ -93,9 +91,10 @@ actor ExtensionBuilder {
         return await output.drain()
     }
     
-    func copyBinaries(
+    func copyExtensionBinaries(
         from binPath: String,
-        for platform: any Platform
+        for platform: any Platform,
+        with arch: Architecture
     ) throws {
         guard let libraries = Array<String>(
             mirrorChildValuesOf: (
@@ -113,7 +112,7 @@ actor ExtensionBuilder {
             let destinationDirectoryUrl = workingDirectory
                 .appendingPathComponent(binFolderName)
                 .appendingPathComponent(driverName)
-                .appendingPathComponent(platform.name)
+                .appendingPathComponent("\(platform.name)-\(arch.rawValue)")
                 .appendingPathComponent(buildMode.rawValue)
             
             if !fileManager.fileExists(atPath: destinationDirectoryUrl.path) {
@@ -131,6 +130,13 @@ actor ExtensionBuilder {
             }
             try fileManager.copyItem(at: originUrl, to: destinationUrl)
         }
+    }
+    
+    func copySwiftRuntimeBinaries(
+        for platform: any Platform,
+        with arch: Architecture
+    ) {
+        // TODO: Copy Swift Runtime binaries on Windows/Linux
     }
     
     // MARK: - Private Methods

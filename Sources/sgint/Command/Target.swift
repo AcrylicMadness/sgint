@@ -11,6 +11,7 @@ import Foundation
 enum Target: String, Decodable, CaseIterable, ExpressibleByArgument {
     case macos
     case ios
+    case linux
     
     var associatedPlatform: any Platform {
         switch self {
@@ -18,12 +19,16 @@ enum Target: String, Decodable, CaseIterable, ExpressibleByArgument {
             return Platform_iOS()
         case .macos:
             return Platform_macOS()
+        case .linux:
+            return Platform_Linux()
         }
     }
     static var current: Target {
         get throws {
 #if os(macOS)
             .macos
+#elseif os(linux)
+            .linux
 #else
             throw TargetDetectError.platfromUnsupportedBySgint
 #endif
