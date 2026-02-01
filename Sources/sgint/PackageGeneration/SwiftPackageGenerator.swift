@@ -14,6 +14,7 @@ actor SwiftPackageGenerator {
         supressWarnings: Bool = true,
         useEntryPointGenerator: Bool = true
     ) async throws {
+        print("Creating Swift Package \(builder.driverName)")
         let setup = await [
             "mkdir \(builder.driverPath.path)",
             "cd \(builder.driverPath.path) && swift package init --name \(builder.driverName) --type library",
@@ -22,7 +23,10 @@ actor SwiftPackageGenerator {
         for command in setup {
             try await builder.run(command)
         }
+        print("Setting up required dependencies")
         let patcher = try await SwiftPackagePatcher(
+            macOsVersion: ".v15",
+            iosVersion: ".v17",
             swiftPackageUrl: builder.driverPath.appendingPathComponent("Package.swift"),
             supressWarnings: supressWarnings,
             useEntryPointGenerator: useEntryPointGenerator
