@@ -71,8 +71,7 @@ struct GDExtension {
                         ) = tscnEntry(for: platform, in: mode, for: arch)
                         libraries[target] = driverLocation
                         dependencies[target] = [swiftGodotLocation: ""]
-                        
-                        if let runtime = platformDependencies["\(platform.directory(for: nil))"] {
+                        if let runtime = platformDependencies["\(platform.directory(for: arch))"] {
                             for libName in runtime {
                                 let library = "\(binLocation)/\(name)/\(platform.directory(for: arch))/\(swiftRuntimeDir)/\(libName)"
                                 dependencies[target] = [library: ""]
@@ -88,7 +87,6 @@ struct GDExtension {
                     ) = tscnEntry(for: platform, in: mode, for: nil)
                     libraries[target] = driverLocation
                     dependencies[target] = [swiftGodotLocation: ""]
-                    
                     if let runtime = platformDependencies[platform.directory(for: nil)] {
                         for libName in runtime {
                             let library = "\(binLocation)/\(name)/\(platform.directory(for: nil))/\(swiftRuntimeDir)/\(libName)"
