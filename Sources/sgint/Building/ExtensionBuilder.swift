@@ -7,6 +7,7 @@
 
 import Foundation
 
+/// ExtensionBuilder that provides platform with build information and shell access
 actor ExtensionBuilder {
     actor Output {
         private var content: String = ""
@@ -39,6 +40,7 @@ actor ExtensionBuilder {
     let workingDirectory: URL
     let fileManager: FileManager
     let binFolderName: String
+    let swiftRuntimeDirName: String
     
     var buildMode: BuildMode = .debug
     var buildArch: Architecture = .aarch64
@@ -56,6 +58,7 @@ actor ExtensionBuilder {
         driverName: String,
         workingDirectory: URL,
         binFolderName: String,
+        swiftRuntimeDirName: String,
         fileManager: FileManager
     ) throws {
         self.projectName = projectName
@@ -63,6 +66,7 @@ actor ExtensionBuilder {
         self.workingDirectory = workingDirectory
         self.fileManager = fileManager
         self.binFolderName = binFolderName
+        self.swiftRuntimeDirName = swiftRuntimeDirName
         
         var detectedShellUrl: URL?
         
@@ -88,6 +92,9 @@ actor ExtensionBuilder {
         self.buildArch = arch
     }
     
+    /// Executes shell command and continuously prints and saves its output
+    /// - Parameter command: Command to execute
+    /// - Returns: Command output
     @discardableResult
     func run(
         _ command: String,
@@ -117,7 +124,7 @@ actor ExtensionBuilder {
     func copyExtensionBinaries(
         from binPath: String,
         for platform: any Platform,
-        with arch: Architecture
+        with arch: Architecture?
     ) throws {
         // On Windows, we also need to copy .pdp and .lib files,
         // but there is no need to specify them in .gdextension
@@ -128,39 +135,63 @@ actor ExtensionBuilder {
             throw ExtensionBuilder.BuildError.failedToMapBinariesPaths
         }
         for library in libraries {
-            print("Copying \(library)")
+            print("Copying extension library: \(library)")
             
-            let originUrl = URL(fileURLWithPath: binPath)
-                .appendingPathComponent(library)
-            
-            let destinationDirectoryUrl = workingDirectory
-                .appendingPathComponent(binFolderName)
-                .appendingPathComponent(driverName)
-                .appendingPathComponent(platform.directory(for: arch))
-                .appendingPathComponent(buildMode.rawValue)
-            
-            if !fileManager.fileExists(atPath: destinationDirectoryUrl.path) {
-                try fileManager.createDirectory(
-                    at: destinationDirectoryUrl,
-                    withIntermediateDirectories: true,
-                    attributes: nil
-                )
-            }
-            let destinationUrl = destinationDirectoryUrl
-                .appendingPathComponent(library)
-            
-            if fileManager.fileExists(atPath: destinationUrl.path) {
-                try fileManager.removeItem(atPath: destinationUrl.path)
-            }
-            try fileManager.copyItem(at: originUrl, to: destinationUrl)
+            let originDirectoryUrl = URL(fileURLWithPath: binPath)
+            let destinationDirectoryUrl = binDestinationDirectory(
+                for: platform,
+                with: arch,
+                appending: buildMode.rawValue
+            )
+            try copyFile(
+                named: library,
+                from: originDirectoryUrl,
+                to: destinationDirectoryUrl
+            )
         }
     }
     
-    func copySwiftRuntimeBinaries(
+    func identifyAndCopyRuntimeLibraries(
+        from binPath: String,
         for platform: any Platform,
-        with arch: Architecture
-    ) {
-        // TODO: Copy Swift Runtime binaries on Windows/Linux
+        with arch: Architecture?
+    ) throws -> [String] {
+        let files = try fileManager.contentsOfDirectory(atPath: binPath)
+        var runtimeLibraries: [String] = []
+        
+        for fileName in files {
+            if fileName.contains(platform.mainLibExtension) {
+                print("Copying Swift Runtime library: \(fileName)")
+                
+                let originDirectoryUrl = URL(fileURLWithPath: binPath)
+                let destinationDirectoryUrl = binDestinationDirectory(
+                    for: platform,
+                    with: arch,
+                    appending: swiftRuntimeDirName
+                )
+                try copyFile(
+                    named: fileName,
+                    from: originDirectoryUrl,
+                    to: destinationDirectoryUrl
+                )
+                runtimeLibraries.append(fileName)
+            }
+        }
+        return runtimeLibraries
+    }
+    
+    /// Provides appropriate URL for binaries to be copied to
+    /// - Returns: Directory URL with format: `bin/(driver)/(platform)-(arch)/(component)`
+    func binDestinationDirectory(
+        for platform: any Platform,
+        with arch: Architecture?,
+        appending component: String
+    ) -> URL {
+        workingDirectory
+            .appendingPathComponent(binFolderName)
+            .appendingPathComponent(driverName)
+            .appendingPathComponent(platform.directory(for: arch))
+            .appendingPathComponent(component)
     }
     
     // MARK: - Private Methods
@@ -213,6 +244,31 @@ actor ExtensionBuilder {
             return nil
         }
         return mainLibraries + additionalLibraries
+    }
+    
+    private
+    func copyFile(
+        named filename: String,
+        from originDirectoryUrl: URL,
+        to destinationDirectoryUrl: URL
+    ) throws {
+        let originFileUrl = originDirectoryUrl
+            .appendingPathComponent(filename)
+        
+        if !fileManager.fileExists(atPath: destinationDirectoryUrl.path) {
+            try fileManager.createDirectory(
+                at: destinationDirectoryUrl,
+                withIntermediateDirectories: true,
+                attributes: nil
+            )
+        }
+        let destinationFileUrl = destinationDirectoryUrl
+            .appendingPathComponent(filename)
+        
+        if fileManager.fileExists(atPath: destinationFileUrl.path) {
+            try fileManager.removeItem(atPath: destinationFileUrl.path)
+        }
+        try fileManager.copyItem(at: originFileUrl, to: destinationFileUrl)
     }
 
     enum BuildError: Error {

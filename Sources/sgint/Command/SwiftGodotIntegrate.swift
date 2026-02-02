@@ -50,9 +50,12 @@ struct SwiftGodotIntegrate: AsyncParsableCommand {
     
     // MARK: - Properties
     private lazy var binFolderName: String = "bin"
+    private lazy var swiftRuntimeDir: String = "swift-runtime"
     private lazy var templateLoader: ResourceLoader = .templateLoader
     private lazy var tscnEncoder: TSCNEncoder = TSCNEncoder(separateSections: true)
     private lazy var packageGenerator: SwiftPackageGenerator = SwiftPackageGenerator()
+    
+    private var identifiedDependencies: [String: [String]] = [:]
     
     private var fileManager: FileManager {
         FileManager.default
@@ -84,6 +87,7 @@ struct SwiftGodotIntegrate: AsyncParsableCommand {
             driverName: currentDriverName,
             workingDirectory: workingDirectory,
             binFolderName: binFolderName,
+            swiftRuntimeDirName: swiftRuntimeDir,
             fileManager: fileManager
         )
         
@@ -94,7 +98,10 @@ struct SwiftGodotIntegrate: AsyncParsableCommand {
         case .build:
             printBuildConfig(projectName: currentProjectName)
             try await buildRequestedPlatforms(withBuilder: builder)
-            try makeExtensionFile(forDriver: currentDriverName)
+            try makeExtensionFile(
+                forDriver: currentDriverName,
+                platformDependencies: identifiedDependencies
+            )
         case .setupVscodeActions:
             fatalError("Not implemented")
         }
@@ -153,7 +160,7 @@ struct SwiftGodotIntegrate: AsyncParsableCommand {
                     // Passed architecture here will be ignored
                     try await buildPlatform(
                         platform,
-                        for: .aarch64,
+                        for: nil,
                         in: mode,
                         withBuilder: builder
                     )
@@ -162,33 +169,49 @@ struct SwiftGodotIntegrate: AsyncParsableCommand {
         }
     }
     
-    private
+    private mutating
     func buildPlatform(
         _ platform: any Platform,
-        for architecture: Architecture,
+        for architecture: Architecture?,
         in mode: BuildMode,
         withBuilder builder: ExtensionBuilder
     ) async throws {
-        print("Building for: \(platform.id)-\(mode)-\(architecture.rawValue)")
-        await builder.prepare(forMode: mode, with: architecture)
+        var buildInfo = "Building for: \(platform.id)-\(mode)"
+        if let architecture {
+            buildInfo.append("-\(architecture.rawValue)")
+        }
+        print(buildInfo)
+        await builder.prepare(forMode: mode, with: architecture ?? .aarch64)
         let binPath = try await platform.build(using: builder)
         try await builder.copyExtensionBinaries(
             from: binPath,
             for: platform,
             with: architecture
         )
+        if let swiftRuntimePath = try await platform.getRuntimeLibPath(using: builder) {
+            let runtimeLibraries = try await builder.identifyAndCopyRuntimeLibraries(
+                from: swiftRuntimePath,
+                for: platform,
+                with: architecture
+            )
+            identifiedDependencies[platform.directory(for: architecture)] = runtimeLibraries
+        }
+        
     }
     
     private mutating
     func makeExtensionFile(
-        forDriver name: String
+        forDriver name: String,
+        platformDependencies: [String: [String]]
     ) throws {
         print("Creating .gdextension file")
         let gdExtension = GDExtension(
             name: name,
             platforms: platforms,
             archs: arch,
-            buildModes: configuration
+            buildModes: configuration,
+            platformDependencies: platformDependencies,
+            swiftRuntimeDir: swiftRuntimeDir
         )
         let content = try tscnEncoder.encode(tscn: gdExtension.tscnRepresentation)
         let outputUrl = workingDirectory

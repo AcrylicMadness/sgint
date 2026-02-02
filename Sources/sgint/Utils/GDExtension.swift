@@ -29,13 +29,21 @@ struct GDExtension {
     /// Build modes, debug and/or release
     let buildModes: [BuildMode]
     
+    /// Dependency libraries for each platform that needs them, organazied by `(platform-id)-(arch)`
+    let platformDependencies: [String: [String]]
+    
+    /// Runtime directory name
+    let swiftRuntimeDir: String
+    
     init(
         name: String,
         platforms: [any Platform],
         archs: [Architecture],
         configuration: Configuration = .standard,
         binLocation: String = "res://bin",
-        buildModes: [BuildMode] = BuildMode.allCases
+        buildModes: [BuildMode] = BuildMode.allCases,
+        platformDependencies: [String: [String]],
+        swiftRuntimeDir: String
     ) {
         self.name = name
         self.platforms = platforms
@@ -43,6 +51,8 @@ struct GDExtension {
         self.configuration = configuration
         self.binLocation = binLocation
         self.buildModes = buildModes
+        self.platformDependencies = platformDependencies
+        self.swiftRuntimeDir = swiftRuntimeDir
     }
     
     var tscnRepresentation: TSCN {
@@ -61,6 +71,13 @@ struct GDExtension {
                         ) = tscnEntry(for: platform, in: mode, for: arch)
                         libraries[target] = driverLocation
                         dependencies[target] = [swiftGodotLocation: ""]
+                        
+                        if let runtime = platformDependencies["\(platform.directory(for: nil))"] {
+                            for libName in runtime {
+                                let library = "\(binLocation)/\(name)/\(platform.directory(for: arch))/\(swiftRuntimeDir)"
+                                dependencies[target] = [library: ""]
+                            }
+                        }
                     }
                 } else {
                     // A single entry, right now only for iOS / iOS Simulator
@@ -71,6 +88,13 @@ struct GDExtension {
                     ) = tscnEntry(for: platform, in: mode, for: nil)
                     libraries[target] = driverLocation
                     dependencies[target] = [swiftGodotLocation: ""]
+                    
+                    if let runtime = platformDependencies[platform.directory(for: nil)] {
+                        for libName in runtime {
+                            let library = "\(binLocation)/\(name)/\(platform.directory(for: nil))/\(swiftRuntimeDir)"
+                            dependencies[target] = [library: ""]
+                        }
+                    }
                 }
             }
         }
