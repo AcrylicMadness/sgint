@@ -74,7 +74,7 @@ struct GDExtension {
                         
                         if let runtime = platformDependencies["\(platform.directory(for: nil))"] {
                             for libName in runtime {
-                                let library = "\(binLocation)/\(name)/\(platform.directory(for: arch))/\(swiftRuntimeDir)"
+                                let library = "\(binLocation)/\(name)/\(platform.directory(for: arch))/\(swiftRuntimeDir)/\(libName)"
                                 dependencies[target] = [library: ""]
                             }
                         }
@@ -91,7 +91,7 @@ struct GDExtension {
                     
                     if let runtime = platformDependencies[platform.directory(for: nil)] {
                         for libName in runtime {
-                            let library = "\(binLocation)/\(name)/\(platform.directory(for: nil))/\(swiftRuntimeDir)"
+                            let library = "\(binLocation)/\(name)/\(platform.directory(for: nil))/\(swiftRuntimeDir)/\(libName)"
                             dependencies[target] = [library: ""]
                         }
                     }
