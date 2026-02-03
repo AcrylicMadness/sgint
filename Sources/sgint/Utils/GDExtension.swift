@@ -74,7 +74,8 @@ struct GDExtension {
                         var targetDependencies = [swiftGodotLocation: ""]
                         if let runtime = platformDependencies["\(platform.directory(for: arch))"] {
                             for libName in runtime {
-                                targetDependencies[libName] = ""
+                                let baseLocation = "\(platform.directory(for: arch))/\(mode.rawValue)"
+                                targetDependencies["\(baseLocation)/\(libName)"] = ""
                             }
                         }
                         dependencies[target] = targetDependencies
@@ -90,7 +91,8 @@ struct GDExtension {
                     var targetDependencies = [swiftGodotLocation: ""]
                     if let runtime = platformDependencies[platform.directory(for: nil)] {
                         for libName in runtime {
-                            targetDependencies[libName] = ""
+                            let baseLocation = "\(platform.directory(for: nil))/\(mode.rawValue)"
+                            targetDependencies["\(baseLocation)/\(libName)"] = ""
                         }
                     }
                     dependencies[target] = targetDependencies
