@@ -1,19 +1,22 @@
 # SwiftGodot Integrator (or sgint, for short) #
 
-A simple cross-platform command line tool that makes working with [SwiftGodot](https://github.com/migueldeicaza/SwiftGodot) easier.
+A simple cross-platform command line tool that building [SwiftGodot](https://github.com/migueldeicaza/SwiftGodot)-based GDExtensions easier.
+On Linux and Windows it will also embed Swift Runtime into extension and reference it in .gdextension file, which is necessary for the extension to function properly on these platforms.
 
-> [!NOTE]
-> Building Swift-based Godot Extensions on Linux or Windows requires referencing Swift Runtime libraries in .gdextension file.
-> This functionality is still work-in-progress.
-
-Requires [Swift Toolchain](https://www.swift.org/install/linux/).
+Requires [Swift Toolchain](https://www.swift.org/install/).
 iOS / iOS Simulator builds require Xcode Command Line Tools.
 
 ## Getting started ##
 
-Use this command to clone and build sgint inside current working directory:
+Use the following commands to clone and build sgint inside of current working directory.
+
+On macOS and Linux:
 ```
 curl -s https://raw.githubusercontent.com/AcrylicMadness/SwiftGodot-Integrator/refs/heads/main/setup.sh | bash
+```
+On Windows:
+```
+poweshell -Command Invoke-WebRequest -Uri https://raw.githubusercontent.com/AcrylicMadness/SwiftGodot-Integrator/refs/heads/main/setup.bat -OutFile "sgint-setup.bat"; ./sgint-setup.bat; DEL "sgint-setup.bat"
 ```
 You can then move sgint into your /bin/ folder, or just put it into you game's root directory and use it from there.
 
