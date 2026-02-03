@@ -73,7 +73,7 @@ struct GDExtension {
                         var targetDependencies = [swiftGodotLocation: ""]
                         if let runtime = platformDependencies["\(platform.directory(for: arch))"] {
                             for libName in runtime {
-                                let library = "\(binLocation)/\(name)/\(platform.directory(for: arch))/\(swiftRuntimeDir)/\(libName)"
+                                let library = "\(binLocation)/\(name).\(platform.directory(for: arch)).\(swiftRuntimeDir).\(libName)"
                                 targetDependencies[library] = ""
                             }
                         }
@@ -90,7 +90,7 @@ struct GDExtension {
                     var targetDependencies = [swiftGodotLocation: ""]
                     if let runtime = platformDependencies[platform.directory(for: nil)] {
                         for libName in runtime {
-                            let library = "\(binLocation)/\(name)/\(platform.directory(for: nil))/\(swiftRuntimeDir)/\(libName)"
+                            let library = "\(binLocation)/\(name).\(platform.directory(for: nil)).\(swiftRuntimeDir).\(libName)"
                             targetDependencies[library] = ""
                         }
                     }
@@ -116,9 +116,9 @@ struct GDExtension {
             target += ".\(arch.alias)"
         }
         let (driverLib, swiftGodotLib) = platform.getMainLibNames(for: name)
-        let baseLocation = "\(binLocation)/\(name)/\(platform.directory(for: arch))/\(mode.rawValue)"
-        let driverLocation = "\(baseLocation)/\(driverLib)"
-        let swiftGodotLocation = "\(baseLocation)/\(swiftGodotLib)"
+        let baseLocation = "\(binLocation)/\(name).\(platform.directory(for: arch)).\(mode.rawValue)"
+        let driverLocation = "\(baseLocation).\(driverLib)"
+        let swiftGodotLocation = "\(baseLocation).\(swiftGodotLib)"
         
         return (target, driverLocation, swiftGodotLocation)
     }
