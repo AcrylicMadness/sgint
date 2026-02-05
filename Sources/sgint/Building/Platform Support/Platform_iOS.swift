@@ -23,8 +23,8 @@ extension Platform_iOS {
         let archivePath = "\(driverPath)/xcodebuild.xcarchive"
         let buildModeName = await builder.buildMode.rawValue.capitalized
         
-        if builder.fileManager.fileExists(atPath: archivePath) {
-            try builder.fileManager.removeItem(atPath: archivePath)
+        if builder.fileSystem.fileExists(atPath: archivePath) {
+            try builder.fileSystem.removeItem(atPath: archivePath)
         }
         // Build SwiftGodot driver as .xcarchive through xcbuild
         let command = [

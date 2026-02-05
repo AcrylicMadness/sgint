@@ -21,3 +21,17 @@ extension Array where Element: Hashable {
         Set(array).isSubset(of: Set(self))
     }
 }
+
+extension Array {
+    
+    /// Safe version of `.removeFirst()`
+    /// - Returns: First element is present, nil if the array is empty
+    mutating
+    func popFirst() -> Element? {
+        guard let first else {
+            return nil
+        }
+        removeFirst()
+        return first
+    }
+}

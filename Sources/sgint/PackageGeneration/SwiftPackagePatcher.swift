@@ -22,6 +22,7 @@ class SwiftPackagePatcher {
     private let useEntryPointGenerator: Bool
     private let macOsVersion: String
     private let iosVersion: String
+    private let fileSystem: FileOperations
     
     private let swiftGodotDependency: String = "SwiftGodot"
     private let entryPointGenerator: String = "EntryPointGeneratorPlugin"
@@ -63,14 +64,19 @@ class SwiftPackagePatcher {
         iosVersion: String,
         swiftPackageUrl: URL,
         supressWarnings: Bool,
-        useEntryPointGenerator: Bool
+        useEntryPointGenerator: Bool,
+        fileSystem: FileOperations
     ) throws {
         self.macOsVersion = macOsVersion
         self.iosVersion = iosVersion
         self.swiftPackageUrl = swiftPackageUrl
         self.suppressWarnings = supressWarnings
         self.useEntryPointGenerator = useEntryPointGenerator
-        self.contents = try String(contentsOf: swiftPackageUrl)
+        self.fileSystem = fileSystem
+        self.contents = try fileSystem.string(
+            contentsOf: swiftPackageUrl,
+            encoding: .utf8
+        )
     }
     
     func patch() throws {

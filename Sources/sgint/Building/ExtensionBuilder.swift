@@ -39,7 +39,7 @@ actor ExtensionBuilder {
     let projectName: String
     let driverName: String
     let workingDirectory: URL
-    let fileManager: FileManager
+    let fileSystem: FileOperations
     let binFolderName: String
     let swiftRuntimeDirName: String
     
@@ -60,19 +60,19 @@ actor ExtensionBuilder {
         workingDirectory: URL,
         binFolderName: String,
         swiftRuntimeDirName: String,
-        fileManager: FileManager
+        fileSystem: FileOperations
     ) throws {
         self.projectName = projectName
         self.driverName = driverName
         self.workingDirectory = workingDirectory
-        self.fileManager = fileManager
+        self.fileSystem = fileSystem
         self.binFolderName = binFolderName
         self.swiftRuntimeDirName = swiftRuntimeDirName
         
         var detectedShellUrl: URL?
         
         for path in ShellType.allCases.map({ $0.rawValue }) {
-            if fileManager.fileExists(atPath: path) {
+            if fileSystem.fileExists(atPath: path) {
                 detectedShellUrl = URL(fileURLWithPath: path)
                 print("Using \(path)")
                 break
@@ -156,7 +156,7 @@ actor ExtensionBuilder {
         for platform: any Platform,
         with arch: Architecture?
     ) throws -> [String] {
-        let files = try fileManager.contentsOfDirectory(atPath: binPath)
+        let files = try fileSystem.contentsOfDirectory(atPath: binPath)
         var runtimeLibraries: [String] = []
         
         for fileName in files {
@@ -257,8 +257,8 @@ actor ExtensionBuilder {
         let originFileUrl = originDirectoryUrl
             .appendingPathComponent(filename)
         
-        if !fileManager.fileExists(atPath: destinationDirectoryUrl.path) {
-            try fileManager.createDirectory(
+        if !fileSystem.fileExists(atPath: destinationDirectoryUrl.path) {
+            try fileSystem.createDirectory(
                 at: destinationDirectoryUrl,
                 withIntermediateDirectories: true,
                 attributes: nil
@@ -267,10 +267,10 @@ actor ExtensionBuilder {
         let destinationFileUrl = destinationDirectoryUrl
             .appendingPathComponent(filename)
         
-        if fileManager.fileExists(atPath: destinationFileUrl.path) {
-            try fileManager.removeItem(atPath: destinationFileUrl.path)
+        if fileSystem.fileExists(atPath: destinationFileUrl.path) {
+            try fileSystem.removeItem(atPath: destinationFileUrl.path)
         }
-        try fileManager.copyItem(at: originFileUrl, to: destinationFileUrl)
+        try fileSystem.copyItem(at: originFileUrl, to: destinationFileUrl)
     }
 
     enum BuildError: Error {

@@ -25,5 +25,9 @@ let package = Package(
                 .copy("Resources/.")
             ]
         ),
+        .testTarget(
+            name: "sgintTests",
+            dependencies: ["sgint"]
+        )
     ]
 )
