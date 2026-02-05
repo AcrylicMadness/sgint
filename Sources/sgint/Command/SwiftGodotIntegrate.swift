@@ -4,7 +4,7 @@ import ArgumentParser
 import Foundation
 
 @main
-struct SwiftGodotIntegrate: AsyncParsableCommand {
+final class SwiftGodotIntegrate: AsyncParsableCommand {
     
     // MARK: - Command Arguments
     @Argument(
@@ -54,15 +54,12 @@ struct SwiftGodotIntegrate: AsyncParsableCommand {
     private lazy var templateLoader: ResourceLoader = .templateLoader
     private lazy var tscnEncoder: TSCNEncoder = TSCNEncoder(separateSections: true)
     private lazy var packageGenerator: SwiftPackageGenerator = SwiftPackageGenerator()
+    private lazy var fileSystem: FileOperations = FileSystem(fileManager: FileManager.default)
     
     private var identifiedDependencies: [String: [String]] = [:]
     
-    private var fileManager: FileManager {
-        FileManager.default
-    }
-    
     var workingDirectory: URL {
-        URL(fileURLWithPath: fileManager.currentDirectoryPath)
+        URL(fileURLWithPath: fileSystem.currentDirectoryPath)
     }
     
     var platforms: [any Platform] {
@@ -70,7 +67,7 @@ struct SwiftGodotIntegrate: AsyncParsableCommand {
     }
     
     // MARK: - Command Execution
-    mutating func run() async throws {
+    func run() async throws {
         if action.requiresTargetValidation {
             try validateTargets()
         }
@@ -88,7 +85,7 @@ struct SwiftGodotIntegrate: AsyncParsableCommand {
             workingDirectory: workingDirectory,
             binFolderName: binFolderName,
             swiftRuntimeDirName: swiftRuntimeDir,
-            fileManager: fileManager
+            fileSystem: fileSystem
         )
         
         switch action {
@@ -108,7 +105,7 @@ struct SwiftGodotIntegrate: AsyncParsableCommand {
     }
     
     // MARK: - Private Methods
-    private mutating
+    private
     func validateTargets() throws {
         let currentTarget = try Target.current
         if targets.isEmpty {
@@ -135,7 +132,7 @@ struct SwiftGodotIntegrate: AsyncParsableCommand {
         }
     }
     
-    private mutating
+    private
     func buildRequestedPlatforms(
         withBuilder builder: ExtensionBuilder
     ) async throws {
@@ -169,7 +166,7 @@ struct SwiftGodotIntegrate: AsyncParsableCommand {
         }
     }
     
-    private mutating
+    private
     func buildPlatform(
         _ platform: any Platform,
         for architecture: Architecture?,
@@ -199,7 +196,7 @@ struct SwiftGodotIntegrate: AsyncParsableCommand {
         
     }
     
-    private mutating
+    private
     func makeExtensionFile(
         forDriver name: String,
         platformDependencies: [String: [String]]
@@ -218,7 +215,12 @@ struct SwiftGodotIntegrate: AsyncParsableCommand {
             .appendingPathComponent(binFolderName)
             .appendingPathComponent(name)
             .appendingPathComponent("\(name).gdextension")
-        try content.write(to: outputUrl, atomically: true, encoding: .utf8)
+        try fileSystem.write(
+            string: content,
+            to: outputUrl,
+            atomically: true,
+            encoding: .utf8
+        )
     }
     
     private

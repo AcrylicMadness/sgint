@@ -26,6 +26,7 @@ struct Platform_Windows: Platform_Desktop {
         // Get Swift version
         // Then get runtime from
         // %LocalAppData%\Programs\Swift\Runtimes\(version)\usr\bin
+        // TODO: Figure dll locations dynamically
 
         let cmd = "swift -v"
         guard let swiftInfoString = try await builder
@@ -38,8 +39,7 @@ struct Platform_Windows: Platform_Desktop {
         let version = String(swiftInfoString
             .split(separator: " ")[2]
         )
-
-        let runtimeDir = builder.fileManager.homeDirectoryForCurrentUser
+        let runtimeDir = builder.fileSystem.homeDirectoryForCurrentUser
             .appendingPathComponent("AppData")
             .appendingPathComponent("Local")
             .appendingPathComponent("Programs")

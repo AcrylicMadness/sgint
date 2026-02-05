@@ -7,9 +7,10 @@
 
 import Foundation
 
-protocol FileOperations {
+protocol FileOperations: Sendable {
     
     var currentDirectoryPath: String { get }
+    var homeDirectoryForCurrentUser: URL { get }
     
     func copyItem(
         at sourceUrl: URL,

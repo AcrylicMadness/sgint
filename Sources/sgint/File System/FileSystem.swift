@@ -7,7 +7,7 @@
 
 import Foundation
 
-class FileSystem: FileOperations {
+final class FileSystem: FileOperations {
     
     private let fileManager: FileManager
     
@@ -17,6 +17,10 @@ class FileSystem: FileOperations {
     
     var currentDirectoryPath: String {
         fileManager.currentDirectoryPath
+    }
+    
+    var homeDirectoryForCurrentUser: URL {
+        fileManager.homeDirectoryForCurrentUser
     }
     
     func copyItem(

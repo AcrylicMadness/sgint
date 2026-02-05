@@ -10,8 +10,8 @@ import Testing
 @testable import sgint
 
 /// Basic file system tree emulation to avoid testing with real files
-class MockFileSystem {
-    class Node: Identifiable, Equatable {
+final class MockFileSystem: @unchecked Sendable {
+    final class Node: Identifiable, Equatable, @unchecked Sendable {
         var name: String
         var isFile: Bool
         var children: [Node]
@@ -210,6 +210,10 @@ class MockFileSystem {
 extension MockFileSystem: FileOperations {
     var currentDirectoryPath: String {
         cwd
+    }
+    
+    var homeDirectoryForCurrentUser: URL {
+        URL(fileURLWithPath: cwd)
     }
     
     func copyItem(

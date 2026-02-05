@@ -20,8 +20,8 @@ struct WorkPlan {
      
      [ ] Abstract Shell access to allow command validation
      [ ] Test that Shell right commands are called correctly
-     [ ] Abstract FileManager to allow testing
-     [ ] Create mock FileManager
+     [x] Abstract FileManager to allow testing
+     [x] Create mock FileManager
      [ ] Test file copying/writing
      [ ] Test GDExtension output
      
