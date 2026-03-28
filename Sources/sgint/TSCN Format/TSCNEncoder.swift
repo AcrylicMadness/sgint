@@ -47,6 +47,11 @@ final class TSCNEncoder {
                 result.appendLine("")
             }
         }
+
+        while result.last == "\n" || result.last == " " {
+            _ = result.popLast()
+        }
+
         return result
     }
     
