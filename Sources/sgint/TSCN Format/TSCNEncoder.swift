@@ -24,6 +24,7 @@ final class TSCNEncoder {
     ) {
         self.stringEncoding = stringEncoding
         self.separateSections = separateSections
+        jsonEncoder.outputFormatting = .sortedKeys
     }
     
     func encode(tscn: TSCN) throws -> String {

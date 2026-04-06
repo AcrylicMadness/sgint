@@ -5,8 +5,8 @@ import Testing
 @Suite
 struct GDExtensionTests {
     
-    let swiftEntryPoint = "swift_entry_point"
-    let compatibilityMinimum = 4.2
+    let swiftEntryPoint = GDExtension.Configuration.standard.entrySymbol
+    let compatibilityMinimum = GDExtension.Configuration.standard.compatibilityMinimum
     
     @Test
     func testExtensionGenerationNoRuntime() throws {
