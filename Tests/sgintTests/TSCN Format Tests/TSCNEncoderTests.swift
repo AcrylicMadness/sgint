@@ -80,7 +80,6 @@ struct TSCCNEncoderTests {
     
     @Test
     func testBadEncoding() throws {
-        
         let badEncoding: String.Encoding = .ascii
         
         let encoder = TSCNEncoder(
@@ -88,7 +87,9 @@ struct TSCCNEncoderTests {
             separateSections: true
         )
         #expect(
-            throws: TSCNEncoder.EncodingError.stringConversionFailed(usingEncoding: badEncoding)
+            throws: TSCNEncoder.EncodingError.stringConversionFailed(
+                usingEncoding: badEncoding
+            )
         ) {
             let _ = try encoder.encode(tscn: tscn)
         }

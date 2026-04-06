@@ -16,6 +16,8 @@ final class TSCNEncoder {
     /// Determines if an empty line should be added after each section for readability
     var separateSections: Bool
     
+    private let jsonEncoder: JSONEncoder = JSONEncoder()
+    
     init(
         stringEncoding: String.Encoding = .utf8,
         separateSections: Bool = true
@@ -56,7 +58,7 @@ final class TSCNEncoder {
     }
     
     private func formatValue(_ value: Codable) throws -> String {
-        let data = try JSONEncoder().encode(value)
+        let data = try jsonEncoder.encode(value)
         guard let string = String(data: data, encoding: stringEncoding) else {
             throw EncodingError.stringConversionFailed(usingEncoding: stringEncoding)
         }
