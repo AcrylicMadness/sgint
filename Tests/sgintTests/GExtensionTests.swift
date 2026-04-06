@@ -47,7 +47,7 @@ struct GDExtensionTests {
     }
     
     @Test
-    func testExtensionGeneraionWithRuntime() throws {
+    func testExtensionGenerationWithRuntime() throws {
         let armDependency = "dependency-arm.so"
         let x86Dependency = "dependency-x86.so"
         
